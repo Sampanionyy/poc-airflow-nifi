@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+
+  # ── Base de données Airflow 
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - poc-network
+
+  # ── Apache NiFi ────────────
+  nifi:
+    image: apache/nifi:1.23.2
+    container_name: nifi
+    ports:
+      - "8443:8443"
+      - "9092:9092"   # PrometheusReportingTask
+    environment:
+      - SINGLE_USER_CREDENTIALS_USERNAME=admin
+      - SINGLE_USER_CREDENTIALS_PASSWORD=adminadminadmin
+      - NIFI_WEB_PROXY_HOST=nifi:8443,nifi
+    volumes:
+      - ./input:/opt/nifi/input                        # fichiers entrants
+      - ./output:/opt/nifi/output                      # fichiers traités
+      - ./nifi-scripts:/opt/nifi/groovy-scripts          # scripts Groovy
+    networks:
+      - poc-network
+
+  # ── Init NiFi : configure le flow via API REST ───────────────────────────────
+  nifi-init:
+    image: python:3.11-slim
+    container_name: nifi-init
+    depends_on:
+      - nifi
+    volumes:
+      - ./nifi-init/setup_flow.py:/setup_flow.py
+    command: python /setup_flow.py
+    restart: "no"
+    networks:
+      - poc-network
+
+  # ── Apache Airflow ─────────
+  airflow:
+    image: apache/airflow:2.8.1
+    container_name: airflow
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      # API REST activée (pour que NiFi puisse déclencher les DAGs)
+      - AIRFLOW__API__AUTH_BACKENDS=airflow.api.auth.backend.basic_auth
+      # Métriques StatsD → statsd-exporter → Prometheus
+      - AIRFLOW__METRICS__STATSD_ON=True
+      - AIRFLOW__METRICS__STATSD_HOST=statsd-exporter
+      - AIRFLOW__METRICS__STATSD_PORT=8125
+      - AIRFLOW__METRICS__STATSD_PREFIX=airflow
+      - _AIRFLOW_WWW_USER_CREATE=true
+      - _AIRFLOW_WWW_USER_USERNAME=admin
+      - _AIRFLOW_WWW_USER_PASSWORD=admin
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./input:/opt/airflow/input
+      - ./output:/opt/airflow/output
+    command:
+      - bash
+      - -c
+      - "airflow db init && airflow users create --username admin --password admin --firstname POC --lastname Demo --role Admin --email poc@demo.com && airflow webserver & airflow scheduler"
+    networks:
+      - poc-network
+
+volumes:
+  postgres_data:
+
+networks:
+  poc-network:
+    driver: bridge
