@@ -1,0 +1,361 @@
+{
+  "uid": "poc-airflow-nifi",
+  "title": "POC Airflow-NiFi — Supervision",
+  "tags": ["poc", "airflow", "nifi"],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "annotations": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Statut Airflow (StatsD)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "up{job=\"airflow-statsd\"}",
+          "legendFormat": "Airflow"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": { "text": "DOWN", "color": "red", "index": 1 },
+                "1": { "text": "UP",   "color": "green", "index": 0 }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Statut NiFi",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "up{job=\"nifi\"}",
+          "legendFormat": "NiFi"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": { "text": "DOWN", "color": "red",   "index": 1 },
+                "1": { "text": "UP",   "color": "green", "index": 0 }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Services actifs",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "refId": "A", "expr": "count(up == 1)", "legendFormat": "Actifs" },
+        { "refId": "B", "expr": "count(up == 0)", "legendFormat": "Inactifs" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Heartbeat Scheduler Airflow",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(airflow_scheduler_heartbeat_total[1m])",
+          "legendFormat": "heartbeat/s"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "id": 5,
+      "title": "DAG Runs — demo_pipeline",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "airflow_dagrun_duration_success{dag_id=\"demo_pipeline\"}",
+          "legendFormat": "duree succes (s)"
+        },
+        {
+          "refId": "B",
+          "expr": "airflow_dagrun_duration_failed{dag_id=\"demo_pipeline\"}",
+          "legendFormat": "duree echec (s)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Tâches Airflow en cours",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "airflow_scheduler_tasks_running",
+          "legendFormat": "en cours"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 10 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Tâches en attente (starving)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "airflow_scheduler_tasks_starving",
+          "legendFormat": "en attente"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "id": 8,
+      "title": "Temps de parsing des DAGs",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "airflow_dag_processing_total_parse_time",
+          "legendFormat": "parse time (s)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 5,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single" }
+      }
+    }
+  ],
+  "version": 2,
+  "panels": [
+    {
+      "id": 1, "title": "Statut Airflow (StatsD)", "type": "stat",
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"refId": "A", "expr": "up{job=\"airflow-statsd\"}", "legendFormat": "Airflow"}],
+      "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red", "index": 1}, "1": {"text": "UP", "color": "green", "index": 0}}}], "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}, "color": {"mode": "thresholds"}}, "overrides": []},
+      "options": {"colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 2, "title": "Statut NiFi", "type": "stat",
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"refId": "A", "expr": "up{job=\"nifi\"}", "legendFormat": "NiFi"}],
+      "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red", "index": 1}, "1": {"text": "UP", "color": "green", "index": 0}}}], "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}, "color": {"mode": "thresholds"}}, "overrides": []},
+      "options": {"colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 3, "title": "Services actifs", "type": "stat",
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"refId": "A", "expr": "count(up == 1)", "legendFormat": "Actifs"}, {"refId": "B", "expr": "count(up == 0)", "legendFormat": "Inactifs"}],
+      "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "color": {"mode": "thresholds"}}, "overrides": []},
+      "options": {"colorMode": "value", "graphMode": "none", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 9, "title": "Clients valides (dernier run)", "type": "stat",
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"refId": "A", "expr": "airflow_demo_pipeline_clients_valides", "legendFormat": "Valides"}],
+      "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "color": {"mode": "thresholds"}, "unit": "short"}, "overrides": []},
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 10, "title": "Clients invalides (dernier run)", "type": "stat",
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"refId": "A", "expr": "airflow_demo_pipeline_clients_invalides", "legendFormat": "Invalides"}],
+      "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "orange", "value": 10}, {"color": "red", "value": 50}]}, "color": {"mode": "thresholds"}, "unit": "short"}, "overrides": []},
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 11, "title": "Taux de validité % (dernier run)", "type": "gauge",
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"refId": "A", "expr": "airflow_demo_pipeline_taux_validite / 10", "legendFormat": "Taux %"}],
+      "fieldConfig": {"defaults": {"min": 0, "max": 100, "unit": "percent", "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "orange", "value": 70}, {"color": "green", "value": 90}]}, "color": {"mode": "thresholds"}}, "overrides": []},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "orientation": "auto", "showThresholdLabels": false, "showThresholdMarkers": true}
+    },
+    {
+      "id": 12, "title": "Valides vs Invalides (historique)", "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "airflow_demo_pipeline_clients_valides", "legendFormat": "Valides"},
+        {"refId": "B", "expr": "airflow_demo_pipeline_clients_invalides", "legendFormat": "Invalides"}
+      ],
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 20, "showPoints": "auto"}}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi"}}
+    },
+    {
+      "id": 4, "title": "Heartbeat Scheduler Airflow", "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"refId": "A", "expr": "rate(airflow_scheduler_heartbeat_total[1m])", "legendFormat": "heartbeat/s"}],
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "showPoints": "never"}}, "overrides": []},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "single"}}
+    },
+    {
+      "id": 6, "title": "Tâches Airflow en cours", "type": "stat",
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 16},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"refId": "A", "expr": "airflow_scheduler_tasks_running", "legendFormat": "en cours"}],
+      "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 5}, {"color": "red", "value": 10}]}, "color": {"mode": "thresholds"}}, "overrides": []},
+      "options": {"colorMode": "background", "graphMode": "area", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    }
+  ]
+}

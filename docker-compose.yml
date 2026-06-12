@@ -117,9 +117,30 @@ services:
     networks:
       - poc-network
 
+  # ── Grafana ────────────────
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: grafana
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - poc-network
+
 volumes:
   postgres_data:
   prometheus_data:
+  grafana_data:
 
 networks:
   poc-network:
