@@ -172,6 +172,17 @@ def _generate_report(**context):
     with open(REPORT_FILE, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
 
+    # Envoi des métriques métier vers StatsD → Prometheus
+    try:
+        from airflow.stats import Stats
+        taux = report["taux_validite_pct"]
+        Stats.gauge("demo_pipeline.clients_total",     total)
+        Stats.gauge("demo_pipeline.clients_valides",   valid)
+        Stats.gauge("demo_pipeline.clients_invalides", invalid)
+        Stats.gauge("demo_pipeline.taux_validite",     int(taux * 10))
+    except Exception:
+        pass
+
     logging.info("Rapport : %s", report)
     return report
 

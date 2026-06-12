@@ -1,0 +1,59 @@
+mappings:
+
+  - match: "airflow.dagrun.duration.success.*"
+    name: "airflow_dagrun_duration_success"
+    labels:
+      dag_id: "$1"
+
+  - match: "airflow.dagrun.duration.failed.*"
+    name: "airflow_dagrun_duration_failed"
+    labels:
+      dag_id: "$1"
+
+  - match: "airflow.ti.finish.*.*.*"
+    name: "airflow_ti_finish"
+    labels:
+      dag_id: "$1"
+      task_id: "$2"
+      state: "$3"
+
+  - match: "airflow.dag_processing.total_parse_time"
+    name: "airflow_dag_processing_total_parse_time"
+    labels: {}
+
+  - match: "airflow.dag_processing.processes"
+    name: "airflow_dag_processing_processes"
+    labels: {}
+
+  - match: "airflow.scheduler.heartbeat"
+    name: "airflow_scheduler_heartbeat"
+    labels: {}
+
+  - match: "airflow.scheduler.tasks.starving"
+    name: "airflow_scheduler_tasks_starving"
+    labels: {}
+
+  - match: "airflow.scheduler.tasks.running"
+    name: "airflow_scheduler_tasks_running"
+    labels: {}
+
+  - match: "airflow.demo_pipeline.clients_valides"
+    name: "airflow_demo_pipeline_clients_valides"
+    labels: {}
+
+  - match: "airflow.demo_pipeline.clients_invalides"
+    name: "airflow_demo_pipeline_clients_invalides"
+    labels: {}
+
+  - match: "airflow.demo_pipeline.clients_total"
+    name: "airflow_demo_pipeline_clients_total"
+    labels: {}
+
+  - match: "airflow.demo_pipeline.taux_validite"
+    name: "airflow_demo_pipeline_taux_validite"
+    labels: {}
+
+  - match: "airflow.*"
+    name: "airflow_other"
+    labels:
+      metric: "$1"

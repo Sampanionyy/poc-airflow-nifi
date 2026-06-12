@@ -85,8 +85,41 @@ services:
     networks:
       - poc-network
 
+  # ── StatsD Exporter (pont Airflow → Prometheus) ──────────────────────────────
+  statsd-exporter:
+    image: prom/statsd-exporter:latest
+    container_name: statsd-exporter
+    ports:
+      - "9102:9102"
+      - "8125:8125/udp"
+    volumes:
+      - ./statsd-exporter/statsd_mapping.yml:/etc/statsd_mapping.yml
+    command:
+      - "--statsd.mapping-config=/etc/statsd_mapping.yml"
+      - "--statsd.listen-udp=:8125"
+      - "--statsd.listen-tcp=:8125"
+    networks:
+      - poc-network
+
+  # ── Prometheus ─────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=7d"
+    networks:
+      - poc-network
+
 volumes:
   postgres_data:
+  prometheus_data:
 
 networks:
   poc-network:
